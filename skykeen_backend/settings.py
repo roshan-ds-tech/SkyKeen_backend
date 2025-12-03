@@ -49,8 +49,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Must be before SecurityMiddleware
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -157,6 +157,7 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     # Production URLs
+    "https://admin.skykeenenterprise.com",
     "https://skykeenentreprise.com",
     "https://www.skykeenentreprise.com",
     "https://admin.skykeenentreprise.com",
@@ -200,6 +201,8 @@ CSRF_COOKIE_SAMESITE = "Lax" if not os.getenv('CSRF_COOKIE_SECURE', 'False') == 
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'  # True for production, False for local
 CSRF_TRUSTED_ORIGINS = [
     # Production URLs
+    "https://admin.skykeenenterprise.com",
+    "https://api.skykeenenterprise.com",
     "https://skykeenentreprise.com",
     "https://www.skykeenentreprise.com",
     "https://admin.skykeenentreprise.com",
