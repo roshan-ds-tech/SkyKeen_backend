@@ -156,6 +156,11 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    # Production URLs
+    "https://skykeenentreprise.com",
+    "https://www.skykeenentreprise.com",
+    "https://admin.skykeenentreprise.com",
+    # Local development URLs
     "http://localhost:5173",  # Vite dev server (main frontend)
     "http://localhost:5174",  # Admin dashboard
     "http://localhost:5175",  # Admin dashboard (alternative port)
@@ -194,6 +199,11 @@ SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request to keep it al
 CSRF_COOKIE_SAMESITE = "Lax" if not os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True' else "None"
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'  # True for production, False for local
 CSRF_TRUSTED_ORIGINS = [
+    # Production URLs
+    "https://skykeenentreprise.com",
+    "https://www.skykeenentreprise.com",
+    "https://admin.skykeenentreprise.com",
+    # Local development URLs
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
