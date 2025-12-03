@@ -18,10 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("SkyKeen API is running successfully!")
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('', home),
     path('', include('events.urls')),
+    path('admin/', admin.site.urls),
 ]
 
 # Serve media files in development
