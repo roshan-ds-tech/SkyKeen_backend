@@ -154,13 +154,20 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cloudinary storage configuration
-# Set these environment variables in Render:
+# Set CLOUDINARY_URL environment variable in Render:
 # CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
-# Or set individually:
-# CLOUDINARY_CLOUD_NAME=your_cloud_name
-# CLOUDINARY_API_KEY=your_api_key
-# CLOUDINARY_API_SECRET=your_api_secret
+# Example: CLOUDINARY_URL=cloudinary://118918895915923:your_secret@dxzv5ewli
+
+# Always use Cloudinary storage (will work if CLOUDINARY_URL is set)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Cloudinary configuration (optional - CLOUDINARY_URL env var is enough)
+# But we can set it explicitly for better error messages
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

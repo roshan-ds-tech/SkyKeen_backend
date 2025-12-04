@@ -111,19 +111,48 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import ValidationError
             raise ValidationError(serializer.errors)
         
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        
-        # Log the created registration with file URLs
-        created_data = serializer.data
-        sys.stdout.write(f"[REGISTRATION] SUCCESS - Registration created: ID {created_data.get('id')}\n")
-        if created_data.get('payment_screenshot'):
-            sys.stdout.write(f"[REGISTRATION] Payment screenshot URL: {created_data.get('payment_screenshot')}\n")
-        if created_data.get('parent_signature'):
-            sys.stdout.write(f"[REGISTRATION] Parent signature URL: {created_data.get('parent_signature')}\n")
-        sys.stdout.write("="*60 + "\n")
-        sys.stdout.flush()
-        return Response(created_data, status=status.HTTP_201_CREATED, headers=headers)
+        try:
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            
+            # Get the created instance to check file URLs
+            instance = serializer.instance
+            
+            # Log the created registration with file URLs
+            created_data = serializer.data
+            sys.stdout.write(f"[REGISTRATION] SUCCESS - Registration created: ID {created_data.get('id')}\n")
+            
+            # Check actual file URLs from the instance
+            if instance.payment_screenshot:
+                actual_url = instance.payment_screenshot.url
+                sys.stdout.write(f"[REGISTRATION] Payment screenshot - Instance URL: {actual_url}\n")
+                sys.stdout.write(f"[REGISTRATION] Payment screenshot - Serialized URL: {created_data.get('payment_screenshot')}\n")
+                sys.stdout.write(f"[REGISTRATION] Payment screenshot - File exists: {instance.payment_screenshot}\n")
+            else:
+                sys.stdout.write(f"[REGISTRATION] WARNING: Payment screenshot is None!\n")
+            
+            if instance.parent_signature:
+                actual_url = instance.parent_signature.url
+                sys.stdout.write(f"[REGISTRATION] Parent signature - Instance URL: {actual_url}\n")
+                sys.stdout.write(f"[REGISTRATION] Parent signature - Serialized URL: {created_data.get('parent_signature')}\n")
+            
+            # Check Cloudinary configuration
+            import os
+            cloudinary_url = os.getenv('CLOUDINARY_URL')
+            if cloudinary_url:
+                sys.stdout.write(f"[REGISTRATION] Cloudinary URL is set: {cloudinary_url[:20]}...\n")
+            else:
+                sys.stdout.write(f"[REGISTRATION] WARNING: CLOUDINARY_URL not set! Files may not upload to Cloudinary.\n")
+            
+            sys.stdout.write("="*60 + "\n")
+            sys.stdout.flush()
+            return Response(created_data, status=status.HTTP_201_CREATED, headers=headers)
+        except Exception as e:
+            import traceback
+            sys.stdout.write(f"[REGISTRATION] ERROR during create: {str(e)}\n")
+            sys.stdout.write(f"[REGISTRATION] Traceback: {traceback.format_exc()}\n")
+            sys.stdout.flush()
+            raise
 
     def list(self, request, *args, **kwargs):
         """
@@ -374,3 +403,33 @@ def test_logging(request):
     sys.stdout.write("="*60 + "\n")
     sys.stdout.flush()
     return Response({'message': 'Logging test successful - check server terminal'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def test_cloudinary(request):
+    """
+    Test endpoint to verify Cloudinary configuration.
+    """
+    import os
+    import sys
+    from django.core.files.storage import default_storage
+    
+    cloudinary_url = os.getenv('CLOUDINARY_URL', 'NOT SET')
+    storage_class = default_storage.__class__.__name__
+    storage_module = default_storage.__class__.__module__
+    
+    sys.stdout.write("\n" + "="*60 + "\n")
+    sys.stdout.write("CLOUDINARY CONFIGURATION TEST\n")
+    sys.stdout.write(f"CLOUDINARY_URL: {cloudinary_url[:30]}... (first 30 chars)\n")
+    sys.stdout.write(f"Storage Class: {storage_class}\n")
+    sys.stdout.write(f"Storage Module: {storage_module}\n")
+    sys.stdout.write("="*60 + "\n")
+    sys.stdout.flush()
+    
+    return Response({
+        'cloudinary_configured': bool(cloudinary_url and cloudinary_url != 'NOT SET'),
+        'storage_class': storage_class,
+        'storage_module': storage_module,
+        'cloudinary_url_set': cloudinary_url != 'NOT SET',
+    })

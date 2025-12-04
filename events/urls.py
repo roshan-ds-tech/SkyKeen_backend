@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RegistrationViewSet, admin_login, admin_logout, admin_check, get_csrf_token, test_logging
+from .views import RegistrationViewSet, admin_login, admin_logout, admin_check, get_csrf_token, test_logging, test_cloudinary
 
 router = DefaultRouter()
 router.register(r'registrations', RegistrationViewSet, basename='registration')
@@ -12,5 +12,6 @@ urlpatterns = [
     path('api/admin/check/', admin_check, name='admin-check'),
     path('api/csrf-token/', get_csrf_token, name='csrf-token'),
     path('api/test-logging/', test_logging, name='test-logging'),
+    path('api/test-cloudinary/', test_cloudinary, name='test-cloudinary'),
 ]
 
