@@ -31,7 +31,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fhhgf&x9#d1j!$4&)ispy7mz!q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']  # Configure appropriately for production
+# ALLOWED_HOSTS configuration for Render
+# Set DJANGO_ALLOWED_HOSTS environment variable in Render: .skykeenentreprise.com,.onrender.com
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -157,10 +159,8 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     # Production URLs
-    "https://admin.skykeenenterprise.com",
-    "https://skykeenentreprise.com",
-    "https://www.skykeenentreprise.com",
     "https://admin.skykeenentreprise.com",
+    "https://skykeenentreprise.com",
     # Local development URLs
     "http://localhost:5173",  # Vite dev server (main frontend)
     "http://localhost:5174",  # Admin dashboard
@@ -201,11 +201,8 @@ CSRF_COOKIE_SAMESITE = "Lax" if not os.getenv('CSRF_COOKIE_SECURE', 'False') == 
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'  # True for production, False for local
 CSRF_TRUSTED_ORIGINS = [
     # Production URLs
-    "https://admin.skykeenenterprise.com",
-    "https://api.skykeenenterprise.com",
-    "https://skykeenentreprise.com",
-    "https://www.skykeenentreprise.com",
     "https://admin.skykeenentreprise.com",
+    "https://skykeenentreprise.com",
     # Local development URLs
     "http://localhost:5173",
     "http://localhost:5174",
