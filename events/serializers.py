@@ -95,23 +95,35 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
         
         # Get API base URL from environment or use request
         api_base_url = os.getenv('API_BASE_URL', 'https://api.skykeenentreprise.com')
-        if not api_base_url.endswith('/'):
-            api_base_url += '/'
+        # Remove trailing slash if present
+        api_base_url = api_base_url.rstrip('/')
         
         # Build absolute URLs for images
         if instance.payment_screenshot:
             if request:
+                # Use request to build absolute URI
                 representation['payment_screenshot'] = request.build_absolute_uri(instance.payment_screenshot.url)
             else:
                 # Fallback: use API base URL from environment
-                representation['payment_screenshot'] = f"{api_base_url.rstrip('/')}{instance.payment_screenshot.url}"
+                # Ensure the media URL doesn't have a leading slash issue
+                media_url = instance.payment_screenshot.url
+                if media_url.startswith('/'):
+                    representation['payment_screenshot'] = f"{api_base_url}{media_url}"
+                else:
+                    representation['payment_screenshot'] = f"{api_base_url}/{media_url}"
         
         if instance.parent_signature:
             if request:
+                # Use request to build absolute URI
                 representation['parent_signature'] = request.build_absolute_uri(instance.parent_signature.url)
             else:
                 # Fallback: use API base URL from environment
-                representation['parent_signature'] = f"{api_base_url.rstrip('/')}{instance.parent_signature.url}"
+                # Ensure the media URL doesn't have a leading slash issue
+                media_url = instance.parent_signature.url
+                if media_url.startswith('/'):
+                    representation['parent_signature'] = f"{api_base_url}{media_url}"
+                else:
+                    representation['parent_signature'] = f"{api_base_url}/{media_url}"
         
         return representation
 
