@@ -155,19 +155,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cloudinary storage configuration
 # Set CLOUDINARY_URL environment variable in Render:
-# CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
-# Example: CLOUDINARY_URL=cloudinary://118918895915923:your_secret@dxzv5ewli
+# CLOUDINARY_URL=cloudinary://118918895915923:ItaHKaCLAvxxuXF0UCRJ5f_q23g@dxzv5ewli
 
-# Always use Cloudinary storage (will work if CLOUDINARY_URL is set)
+# Always use Cloudinary storage
+# django-cloudinary-storage will automatically use CLOUDINARY_URL from environment
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# Cloudinary configuration (optional - CLOUDINARY_URL env var is enough)
-# But we can set it explicitly for better error messages
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
-}
+# Verify Cloudinary is configured on startup
+cloudinary_url = os.getenv('CLOUDINARY_URL')
+if cloudinary_url:
+    print(f"✓ Cloudinary configured: {cloudinary_url[:30]}...")
+else:
+    print("⚠ WARNING: CLOUDINARY_URL not set! Files will not be uploaded to Cloudinary.")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
