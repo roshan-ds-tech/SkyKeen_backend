@@ -256,13 +256,27 @@ def admin_login(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # Allow any to avoid CSRF issues, but check auth manually
+@csrf_exempt
 def admin_logout(request):
     """
     Admin logout endpoint.
+    Allows logout even if CSRF token is missing (for convenience).
     """
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        return Response(
+            {'error': 'Not authenticated'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
     logout(request)
-    return Response({'success': True, 'message': 'Logout successful'})
+    response = Response({'success': True, 'message': 'Logout successful'})
+    
+    # Clear the session cookie
+    response.delete_cookie('sessionid', path='/')
+    
+    return response
 
 
 @api_view(['GET'])
