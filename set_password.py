@@ -10,15 +10,10 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-email = "admin@skykeen.com"
-password = "admin123"  # choose your password
+user = User.objects.get(email="admin@skykeen.com")
+user.set_password("admin123")
+user.save()
 
-try:
-    user = User.objects.get(email=email)
-    user.set_password(password)
-    user.save()
-    print("Password updated successfully!")
-except User.DoesNotExist:
-    print("User does not exist!")
+print("Password updated successfully!")
 
 
