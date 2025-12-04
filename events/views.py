@@ -207,6 +207,7 @@ def admin_login(request):
                 response = Response({
                     'success': True,
                     'message': 'Login successful',
+                    'redirect': '/dashboard',  # Frontend route to redirect to
                     'user': {
                         'id': user.id,
                         'email': user.email if user.email else '',
