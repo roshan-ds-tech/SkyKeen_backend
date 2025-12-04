@@ -165,18 +165,34 @@ def admin_login(request):
         from django.contrib.auth import get_user_model
         User = get_user_model()
         
+        user_obj = None
         username = None
+        
+        # First try to find user by email
         try:
-            # First try to find user by email
             user_obj = User.objects.get(email=email)
             username = user_obj.username
-        except (User.DoesNotExist, User.MultipleObjectsReturned):
+        except User.DoesNotExist:
             # If not found by email, try username
             try:
                 user_obj = User.objects.get(username=email)
                 username = user_obj.username
-            except (User.DoesNotExist, User.MultipleObjectsReturned):
-                username = email  # Fallback: try email as username
+            except User.DoesNotExist:
+                # User doesn't exist - return invalid credentials
+                return Response(
+                    {'error': 'Invalid credentials'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+        except User.MultipleObjectsReturned:
+            # Multiple users with same email - get the first one
+            user_obj = User.objects.filter(email=email).first()
+            if user_obj:
+                username = user_obj.username
+            else:
+                return Response(
+                    {'error': 'Invalid credentials'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
         
         # Authenticate with the username
         user = authenticate(request, username=username, password=password)
