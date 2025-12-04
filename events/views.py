@@ -148,74 +148,93 @@ def admin_login(request):
     Admin login endpoint.
     Supports both email and username for authentication.
     """
-    email = request.data.get('email')
-    password = request.data.get('password')
-
-    if not email or not password:
-        return Response(
-            {'error': 'Email and password are required'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Try to find user by email first, then by username
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
+    import os
+    import traceback
     
-    username = None
     try:
-        # First try to find user by email
-        user_obj = User.objects.get(email=email)
-        username = user_obj.username
-    except User.DoesNotExist:
-        # If not found by email, try username
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response(
+                {'error': 'Email and password are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Try to find user by email first, then by username
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        username = None
         try:
-            user_obj = User.objects.get(username=email)
+            # First try to find user by email
+            user_obj = User.objects.get(email=email)
             username = user_obj.username
-        except User.DoesNotExist:
-            username = email  # Fallback: try email as username
-    
-    # Authenticate with the username
-    user = authenticate(request, username=username, password=password)
-    
-    if user is not None:
-        if user.is_staff or user.is_superuser:
-            login(request, user)
-            # Explicitly save the session to ensure cookie is set
-            request.session.save()
-            
-            # Create response
-            response = Response({
-                'success': True,
-                'message': 'Login successful',
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'username': user.username
-                }
-            })
-            
-            # Ensure session cookie is set with proper attributes
-            # The session middleware should handle this, but we'll ensure it's set
-            if request.session.session_key:
-                response.set_cookie(
-                    'sessionid',
-                    request.session.session_key,
-                    max_age=86400,  # 24 hours
-                    httponly=True,
-                    samesite='Lax',  # Use Lax for local development
-                    secure=False  # False for HTTP localhost
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            # If not found by email, try username
+            try:
+                user_obj = User.objects.get(username=email)
+                username = user_obj.username
+            except (User.DoesNotExist, User.MultipleObjectsReturned):
+                username = email  # Fallback: try email as username
+        
+        # Authenticate with the username
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            if user.is_staff or user.is_superuser:
+                login(request, user)
+                # Explicitly save the session to ensure cookie is set
+                request.session.save()
+                
+                # Create response
+                response = Response({
+                    'success': True,
+                    'message': 'Login successful',
+                    'user': {
+                        'id': user.id,
+                        'email': user.email if user.email else '',
+                        'username': user.username
+                    }
+                })
+                
+                # Get cookie settings from environment or settings
+                is_secure = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'
+                samesite_value = 'None' if is_secure else 'Lax'
+                
+                # Ensure session cookie is set with proper attributes
+                if request.session.session_key:
+                    response.set_cookie(
+                        'sessionid',
+                        request.session.session_key,
+                        max_age=86400,  # 24 hours
+                        httponly=True,
+                        samesite=samesite_value,
+                        secure=is_secure
+                    )
+                
+                return response
+            else:
+                return Response(
+                    {'error': 'User does not have admin privileges'},
+                    status=status.HTTP_403_FORBIDDEN
                 )
-            
-            return response
         else:
             return Response(
-                {'error': 'User does not have admin privileges'},
-                status=status.HTTP_403_FORBIDDEN
+                {'error': 'Invalid credentials'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
-    else:
+    except Exception as e:
+        # Log the error for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Admin login error: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Return a generic error message to avoid exposing internal details
         return Response(
-            {'error': 'Invalid credentials'},
-            status=status.HTTP_401_UNAUTHORIZED
+            {'error': 'An error occurred during login. Please try again.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 
