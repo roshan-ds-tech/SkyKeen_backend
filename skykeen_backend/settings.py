@@ -88,11 +88,12 @@ WSGI_APPLICATION = 'skykeen_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration using dj-database-url
-# Automatically uses DATABASE_URL if provided (Render, Heroku, etc.)
-# Falls back to SQLite for local development
+# PostgreSQL configuration for production (Render)
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+    'default': dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
     )
 }
 
