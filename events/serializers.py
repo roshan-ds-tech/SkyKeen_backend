@@ -89,14 +89,29 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
         """
         Return absolute URLs for image fields.
         """
+        import os
         representation = super().to_representation(instance)
         request = self.context.get('request')
         
-        if request:
-            if instance.payment_screenshot:
+        # Get API base URL from environment or use request
+        api_base_url = os.getenv('API_BASE_URL', 'https://api.skykeenentreprise.com')
+        if not api_base_url.endswith('/'):
+            api_base_url += '/'
+        
+        # Build absolute URLs for images
+        if instance.payment_screenshot:
+            if request:
                 representation['payment_screenshot'] = request.build_absolute_uri(instance.payment_screenshot.url)
-            if instance.parent_signature:
+            else:
+                # Fallback: use API base URL from environment
+                representation['payment_screenshot'] = f"{api_base_url.rstrip('/')}{instance.payment_screenshot.url}"
+        
+        if instance.parent_signature:
+            if request:
                 representation['parent_signature'] = request.build_absolute_uri(instance.parent_signature.url)
+            else:
+                # Fallback: use API base URL from environment
+                representation['parent_signature'] = f"{api_base_url.rstrip('/')}{instance.parent_signature.url}"
         
         return representation
 

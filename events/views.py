@@ -93,6 +93,16 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         sys.stdout.write(f"[REGISTRATION] Final competitions: {data.get('competitions')}, workshops: {data.get('workshops')}\n")
         sys.stdout.flush()
         
+        # Log file upload information
+        if 'payment_screenshot' in request.FILES:
+            file = request.FILES['payment_screenshot']
+            sys.stdout.write(f"[REGISTRATION] Payment screenshot received: {file.name}, size: {file.size}, type: {file.content_type}\n")
+            sys.stdout.flush()
+        if 'parent_signature' in request.FILES:
+            file = request.FILES['parent_signature']
+            sys.stdout.write(f"[REGISTRATION] Parent signature received: {file.name}, size: {file.size}, type: {file.content_type}\n")
+            sys.stdout.flush()
+        
         serializer = self.get_serializer(data=data, context={'request': request})
         
         if not serializer.is_valid():
@@ -103,10 +113,17 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        sys.stdout.write(f"[REGISTRATION] SUCCESS - Registration created: ID {serializer.data.get('id')}\n")
+        
+        # Log the created registration with file URLs
+        created_data = serializer.data
+        sys.stdout.write(f"[REGISTRATION] SUCCESS - Registration created: ID {created_data.get('id')}\n")
+        if created_data.get('payment_screenshot'):
+            sys.stdout.write(f"[REGISTRATION] Payment screenshot URL: {created_data.get('payment_screenshot')}\n")
+        if created_data.get('parent_signature'):
+            sys.stdout.write(f"[REGISTRATION] Parent signature URL: {created_data.get('parent_signature')}\n")
         sys.stdout.write("="*60 + "\n")
         sys.stdout.flush()
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(created_data, status=status.HTTP_201_CREATED, headers=headers)
 
     def list(self, request, *args, **kwargs):
         """

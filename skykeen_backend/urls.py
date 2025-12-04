@@ -29,6 +29,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-# Serve media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files (both development and production)
+# In production, you may want to use a CDN or web server, but this works for now
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
