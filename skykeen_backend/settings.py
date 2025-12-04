@@ -31,9 +31,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fhhgf&x9#d1j!$4&)ispy7mz!q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-# ALLOWED_HOSTS configuration for Render
-# Set DJANGO_ALLOWED_HOSTS environment variable in Render: .skykeenentreprise.com,.onrender.com
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    'api.skykeenentreprise.com',
+    'admin.skykeenentreprise.com',
+    'skykeen-backend.onrender.com'
+]
 
 
 # Application definition
@@ -158,18 +160,8 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    # Production URLs
-    "https://admin.skykeenentreprise.com",
-    "https://skykeenentreprise.com",
-    # Local development URLs
-    "http://localhost:5173",  # Vite dev server (main frontend)
-    "http://localhost:5174",  # Admin dashboard
-    "http://localhost:5175",  # Admin dashboard (alternative port)
-    "http://localhost:5176",  # Admin dashboard (current port)
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:5175",
-    "http://127.0.0.1:5176",
+    'https://admin.skykeenentreprise.com',
+    'https://skykeenentreprise.com',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -200,18 +192,9 @@ SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request to keep it al
 CSRF_COOKIE_SAMESITE = "Lax" if not os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True' else "None"
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'  # True for production, False for local
 CSRF_TRUSTED_ORIGINS = [
-    # Production URLs
-    "https://admin.skykeenentreprise.com",
-    "https://skykeenentreprise.com",
-    # Local development URLs
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-    "http://localhost:5176",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:5175",
-    "http://127.0.0.1:5176",
+    'https://admin.skykeenentreprise.com',
+    'https://skykeenentreprise.com',
+    'https://api.skykeenentreprise.com',
 ]
 
 # File upload settings
