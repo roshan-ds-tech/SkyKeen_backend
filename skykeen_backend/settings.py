@@ -89,13 +89,24 @@ WSGI_APPLICATION = 'skykeen_backend.wsgi.application'
 
 # Database configuration using dj-database-url
 # PostgreSQL configuration for production (Render)
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+# Falls back to SQLite for local development when DATABASE_URL is not set
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -163,6 +174,9 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     'https://admin.skykeenentreprise.com',
     'https://skykeenentreprise.com',
+    'https://www.skykeenentreprise.com',
+    'http://skykeenentreprise.com',  # If using HTTP
+    'http://www.skykeenentreprise.com',  # If using HTTP
 ]
 
 CORS_ALLOW_CREDENTIALS = True
