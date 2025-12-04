@@ -1,12 +1,24 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes, action, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
 from .models import EventRegistration
 from .serializers import EventRegistrationSerializer, PaymentVerificationSerializer
+
+
+# Custom SessionAuthentication that doesn't enforce CSRF
+class NoCSRFSessionAuthentication(SessionAuthentication):
+    """
+    SessionAuthentication that doesn't enforce CSRF protection.
+    Use this for endpoints that need to work without CSRF tokens.
+    """
+    def enforce_csrf(self, request):
+        # Bypass CSRF check
+        return
 
 
 class RegistrationViewSet(viewsets.ModelViewSet):
@@ -255,14 +267,13 @@ def admin_login(request):
         )
 
 
-@csrf_exempt
 @api_view(['POST'])
+@authentication_classes([NoCSRFSessionAuthentication])  # Use custom auth that bypasses CSRF
 @permission_classes([AllowAny])  # Allow any to avoid CSRF issues, but check auth manually
 def admin_logout(request):
     """
     Admin logout endpoint.
-    Allows logout even if CSRF token is missing (for convenience).
-    CSRF exempt is placed before @api_view to ensure it works properly.
+    Uses custom authentication that bypasses CSRF protection.
     """
     # Check if user is authenticated
     if not request.user.is_authenticated:
