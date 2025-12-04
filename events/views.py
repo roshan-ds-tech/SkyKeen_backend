@@ -27,6 +27,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     """
     queryset = EventRegistration.objects.all()
     serializer_class = EventRegistrationSerializer
+    authentication_classes = [NoCSRFSessionAuthentication, SessionAuthentication]
 
     def get_permissions(self):
         """
@@ -188,14 +189,43 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         """
         Update payment verification status and notes (admin only).
         """
-        registration = self.get_object()
-        serializer = PaymentVerificationSerializer(registration, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        
-        # Return full registration data
-        full_serializer = EventRegistrationSerializer(registration, context={'request': request})
-        return Response(full_serializer.data)
+        try:
+            import sys
+            sys.stdout.write(f"\n[VERIFY] === Payment Verification Request ===\n")
+            sys.stdout.write(f"[VERIFY] Registration ID: {pk}\n")
+            sys.stdout.write(f"[VERIFY] User: {request.user} (Authenticated: {request.user.is_authenticated})\n")
+            sys.stdout.write(f"[VERIFY] Request data: {request.data}\n")
+            sys.stdout.flush()
+            
+            registration = self.get_object()
+            sys.stdout.write(f"[VERIFY] Found registration: {registration.id} - {registration.student_name}\n")
+            sys.stdout.write(f"[VERIFY] Current payment_verified status: {registration.payment_verified}\n")
+            
+            serializer = PaymentVerificationSerializer(registration, data=request.data, partial=True)
+            if not serializer.is_valid():
+                sys.stdout.write(f"[VERIFY] Validation errors: {serializer.errors}\n")
+                sys.stdout.flush()
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            registration.refresh_from_db()
+            sys.stdout.write(f"[VERIFY] Updated payment_verified status: {registration.payment_verified}\n")
+            sys.stdout.write(f"[VERIFY] Notes: {registration.notes[:50] if registration.notes else 'None'}...\n")
+            sys.stdout.write(f"[VERIFY] SUCCESS - Payment verification updated\n")
+            sys.stdout.flush()
+            
+            # Return full registration data
+            full_serializer = EventRegistrationSerializer(registration, context={'request': request})
+            return Response(full_serializer.data)
+        except Exception as e:
+            import traceback
+            sys.stdout.write(f"[VERIFY] ERROR: {str(e)}\n")
+            sys.stdout.write(f"[VERIFY] Traceback: {traceback.format_exc()}\n")
+            sys.stdout.flush()
+            return Response(
+                {'error': f'Failed to verify payment: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 @api_view(['POST'])
