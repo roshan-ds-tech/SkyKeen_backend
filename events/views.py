@@ -255,13 +255,14 @@ def admin_login(request):
         )
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Allow any to avoid CSRF issues, but check auth manually
-@csrf_exempt
 def admin_logout(request):
     """
     Admin logout endpoint.
     Allows logout even if CSRF token is missing (for convenience).
+    CSRF exempt is placed before @api_view to ensure it works properly.
     """
     # Check if user is authenticated
     if not request.user.is_authenticated:
@@ -273,8 +274,17 @@ def admin_logout(request):
     logout(request)
     response = Response({'success': True, 'message': 'Logout successful'})
     
-    # Clear the session cookie
-    response.delete_cookie('sessionid', path='/')
+    # Clear the session cookie with proper settings
+    import os
+    is_secure = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'
+    samesite_value = 'None' if is_secure else 'Lax'
+    
+    response.delete_cookie(
+        'sessionid',
+        path='/',
+        samesite=samesite_value,
+        secure=is_secure
+    )
     
     return response
 
