@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 
 class EventRegistration(models.Model):
@@ -20,7 +21,12 @@ class EventRegistration(models.Model):
     # Parent Details
     parent_name = models.CharField(max_length=255)
     parent_contact = models.CharField(max_length=20)
-    parent_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    parent_signature = models.ImageField(
+        upload_to='signatures/',
+        storage=MediaCloudinaryStorage(),
+        blank=True,
+        null=True
+    )
 
     # Competitions (Multiple Select - stored as JSON)
     competitions = models.JSONField(default=list, blank=True)
@@ -31,7 +37,10 @@ class EventRegistration(models.Model):
     # Payment Details
     payment_mode = models.CharField(max_length=100)
     transaction_id = models.CharField(max_length=255)
-    payment_screenshot = models.ImageField(upload_to='payments/')
+    payment_screenshot = models.ImageField(
+        upload_to='payments/',
+        storage=MediaCloudinaryStorage()
+    )
 
     # Payment Verification
     payment_verified = models.BooleanField(default=False)
