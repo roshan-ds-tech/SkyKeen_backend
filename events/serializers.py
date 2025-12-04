@@ -88,38 +88,41 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """
         Return absolute URLs for image fields.
+        Cloudinary URLs are already absolute, so we use them directly.
         """
-        import os
         representation = super().to_representation(instance)
         request = self.context.get('request')
         
-        # Get API base URL from environment or use request
-        api_base_url = os.getenv('API_BASE_URL', 'https://api.skykeenentreprise.com')
-        # Remove trailing slash if present
-        api_base_url = api_base_url.rstrip('/')
-        
         # Build absolute URLs for images
         if instance.payment_screenshot:
-            if request:
-                # Use request to build absolute URI
-                representation['payment_screenshot'] = request.build_absolute_uri(instance.payment_screenshot.url)
+            media_url = instance.payment_screenshot.url
+            # Cloudinary URLs are already absolute (start with http:// or https://)
+            if media_url.startswith('http://') or media_url.startswith('https://'):
+                representation['payment_screenshot'] = media_url
+            elif request:
+                # For local files (development), build absolute URI
+                representation['payment_screenshot'] = request.build_absolute_uri(media_url)
             else:
-                # Fallback: use API base URL from environment
-                # Ensure the media URL doesn't have a leading slash issue
-                media_url = instance.payment_screenshot.url
+                # Fallback: use API base URL
+                import os
+                api_base_url = os.getenv('API_BASE_URL', 'https://api.skykeenentreprise.com').rstrip('/')
                 if media_url.startswith('/'):
                     representation['payment_screenshot'] = f"{api_base_url}{media_url}"
                 else:
                     representation['payment_screenshot'] = f"{api_base_url}/{media_url}"
         
         if instance.parent_signature:
-            if request:
-                # Use request to build absolute URI
-                representation['parent_signature'] = request.build_absolute_uri(instance.parent_signature.url)
+            media_url = instance.parent_signature.url
+            # Cloudinary URLs are already absolute (start with http:// or https://)
+            if media_url.startswith('http://') or media_url.startswith('https://'):
+                representation['parent_signature'] = media_url
+            elif request:
+                # For local files (development), build absolute URI
+                representation['parent_signature'] = request.build_absolute_uri(media_url)
             else:
-                # Fallback: use API base URL from environment
-                # Ensure the media URL doesn't have a leading slash issue
-                media_url = instance.parent_signature.url
+                # Fallback: use API base URL
+                import os
+                api_base_url = os.getenv('API_BASE_URL', 'https://api.skykeenentreprise.com').rstrip('/')
                 if media_url.startswith('/'):
                     representation['parent_signature'] = f"{api_base_url}{media_url}"
                 else:
